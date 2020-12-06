@@ -39,7 +39,7 @@ int main (void) {
 		map.push_back( line );
 	}
 
-	trees = count_trees( map, 1, 3 ) * count_trees( map, 1, 1 )
+	trees = count_trees( map, 3, 1 ) * count_trees( map, 1, 1 )
 		 * count_trees( map, 5, 1 ) * count_trees( map, 7, 1 )
 		 * count_trees( map, 1, 2 );
 
