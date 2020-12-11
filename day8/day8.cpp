@@ -27,16 +27,16 @@ _instr string_to_instr( std::string input ) {
 	return instr;
 }
 
-int find_acc_value( std::vector<instruction> instructions ) {
-
-	int acc_value = 0;
+bool find_loop( std::vector<instruction> &instructions, int &acc_value ) {
 	std::vector<bool> visited( instructions.size() );
 	std::fill( visited.begin(), visited.end(), false );
 
+	acc_value = 0;
+
 	int pc = 0;
-	while(1) {
+	while( pc < instructions.size() ) {
 		if( visited[pc] ) {
-			return acc_value;
+			return true;
 		}
 
 		switch( instructions[pc].instr ) {
@@ -54,6 +54,7 @@ int find_acc_value( std::vector<instruction> instructions ) {
 				pc += instructions[pc].value;
 		}
 	}
+	return false;
 }
 
 int find_corrupt_instruction( std::vector<instruction> instructions ) {
@@ -71,35 +72,17 @@ int find_corrupt_instruction( std::vector<instruction> instructions ) {
 		else {
 			continue;
 		}
-		int pc = 0;
+
 		int acc_value = 0;
-		bool loop = false;
-		std::fill( visited.begin(), visited.end(), false );
-		while(pc < instructions.size()) {
-			if( visited[pc] ) {
-				instructions[i].instr = ( instructions[i].instr == _instr::nop ) ? _instr::jmp : _instr::nop;
-				loop = true;
-				break;
-			}
-			switch( instructions[pc].instr ) {
-				case _instr::acc:
-					visited[pc] = true;
-					acc_value += instructions[pc].value;
-					pc++;
-					break;
-				case _instr::nop:
-					visited[pc] = true;
-					pc++;
-					break;
-				case _instr::jmp:
-					visited[pc] = true;
-					pc += instructions[pc].value;
-			}
+
+		if( find_loop( instructions, acc_value ) ) {
+			instructions[i].instr = ( instructions[i].instr == _instr::nop ) ? _instr::jmp : _instr::nop;
 		}
-		if( !loop ) {
+		else {
 			return acc_value;
 		}
 	}
+	return -1;
 }
 
 int main() {
@@ -109,13 +92,15 @@ int main() {
 	std::string instr;
 	char op;
 	int value;
+	int acc_value;
 
 	while( infile >> instr >> value ) {
 		instructions.push_back( { string_to_instr( instr ), value } );
-		std::cout << instr << " " << value << std::endl;
 	}
 
-	std::cout << find_acc_value( instructions ) << std::endl;
+	if( find_loop( instructions, acc_value ) ) {
+		std::cout << acc_value << std::endl;
+	}
 
 	std::cout << find_corrupt_instruction( instructions ) << std::endl;
 
